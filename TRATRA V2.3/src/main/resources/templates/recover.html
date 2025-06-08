@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Recuperar contraseña</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: rgba(0,0,0,0.8);
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            box-sizing: border-box;
+        }
+        h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        label, input, button {
+            width: 100%;
+            display: block;
+            margin-top: 10px;
+        }
+        input, button {
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .message.error {
+            color: #ff6b6b;
+        }
+        .message.success {
+            color: #7bed9f;
+        }
+        .link {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Recuperar contraseña</h2>
+        <form th:action="@{/recover}" method="post">
+            <label for="email">Introduce tu email:</label>
+            <input type="email" id="email" name="email" required>
+            <button type="submit">Enviar enlace de recuperación</button>
+        </form>
+
+        <p th:if="${message}" class="message success" th:text="${message}"></p>
+        <p th:if="${error}" class="message error" th:text="${error}"></p>
+
+        <div class="link">
+            <a th:href="@{/login}">Volver al inicio de sesión</a>
+        </div>
+    </div>
+</body>
+</html>
