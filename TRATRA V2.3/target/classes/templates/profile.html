@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Perfil de Usuario</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .stat-card {
+            background: #e6f0ff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .stat-card i {
+            font-size: 30px;
+            color: #4A90E2;
+        }
+        canvas {
+            margin-top: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        form {
+            margin-top: 30px;
+        }
+        .button-back {
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        .button-back:hover {
+            background-color: #357ABD;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <img th:src="${avatarPath != null} ? @{${avatarPath}} : @{/images/default-avatar.png}" alt="Avatar" />
+        <h1 th:text="'Perfil de ' + ${user.fullName}">Nombre</h1>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-road"></i>
+            <h3 th:text="${totalDistanceKm} + ' km totales'">0 km totales</h3>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-calendar-week"></i>
+            <h3 th:text="${weeklyDistanceKm} + ' km esta semana'">0 km esta semana</h3>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-calendar"></i>
+            <h3 th:text="${monthlyDistanceKm} + ' km este mes'">0 km este mes</h3>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-mountain"></i>
+            <h3 th:text="${totalElevationGain} + ' m desnivel total'">0 m desnivel total</h3>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-arrow-up"></i>
+            <h3 th:text="${weeklyElevationGain} + ' m desnivel semanal'">0 m desnivel semanal</h3>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-chart-line"></i>
+            <h3 th:text="${monthlyElevationGain} + ' m desnivel mensual'">0 m desnivel mensual</h3>
+        </div>
+    </div>
+
+    <canvas id="kmChart" height="150"></canvas>
+    <canvas id="desnivelChart" height="150"></canvas>
+
+    <form method="get" action="/profile">
+        <label>Desde: <input type="date" name="startDate" /></label>
+        <label>Hasta: <input type="date" name="endDate" /></label>
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <div class="stats-grid" style="margin-top: 30px;">
+        <div class="stat-card">
+            <i class="fas fa-medal"></i>
+            <h3 th:if="${recordDistanceKm != null}" 
+                th:text="'Record distancia: ' + ${recordDistanceKm.distanceKm} + ' km (' + ${recordDistanceKm.date} + ')'">Record distancia</h3>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-trophy"></i>
+            <h3 th:if="${recordElevationGain != null}" 
+                th:text="'Record desnivel: ' + ${recordElevationGain.elevationGain} + ' m (' + ${recordElevationGain.date} + ')'">Record desnivel</h3>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/profile/edit" class="button-back">Editar Perfil</a>
+        <a href="/home" class="button-back" style="margin-left: 10px;">Volver al inicio</a>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const labels = [[${diasSemana}]];
+    const kmData = [[${kmsSemanaDia}]];
+    const elevationData = [[${elevationGainSemanaDia}]];
+
+    new Chart(document.getElementById('kmChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Km por día',
+                data: kmData,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.3,
+                fill: true
+            }]
+        }
+    });
+
+    new Chart(document.getElementById('desnivelChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Desnivel positivo (m)',
+                data: elevationData,
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
